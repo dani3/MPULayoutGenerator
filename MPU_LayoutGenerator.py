@@ -8,8 +8,7 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
     powers_array = generate_powers_array()
 
     # Go to parent folder.
-    # mpu_file = open("..\Source\HAL\ST31_MPU_temp.c", "w+")
-    mpu_file = open("ST31_MPU_temp.c", "w+")
+    mpu_file = open("..\Source\HAL\ST31_MPU_temp.c", "w+")
 
     mpu_file.write('#include <Globals/PLATFORM.H>\n')
     mpu_file.write('\n')
@@ -55,7 +54,7 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
     mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0xF0 << 8 | 0x07 << 1 | MPU_ENABLE);\n')
 
     mpu_file.write('\n')
-    mpu_file.write('  // Only 4 regions available.')
+    mpu_file.write('  // Only 4 regions available to protect our code.')
     mpu_file.write('\n')
 
     # Our code has to be protected, first, calculate the space it takes
@@ -77,16 +76,22 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
                     # We've surpassed the code, decrease it by one
                     ii -= 1
 
+                    print("Region chosen: %x" % powers_array[ii])
+
                     mpu_file.write('\n')
                     mpu_file.write('  // Region %d Enabled.\n' % i)
                     mpu_file.write('  r_MPU_REGION_BASE_ADDRESS = ((0x%x & 0xFFFFFF00) | MPU_RBAR_VALID | %d);\n' % (region_base_address, i))
                     mpu_file.write('  // Permission: r+x; SRD; Size affected; Enabled;\n')
-                    mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0x00 << 8 | 0x%x << 1 | MPU_ENABLE);\n' % powers_array[ii])
+                    mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0x00 << 8 | 0x%x << 1 | MPU_ENABLE);\n' % (MIN_POWER + ii))
 
                     # Update the code size remaining
                     code_remaining = code_remaining - powers_array[ii]
+                    print("Code remaining: %x" % code_remaining)
                     # The next region will start in this address
                     region_base_address += powers_array[ii]
+                    print("Next region: %x" % region_base_address)
+
+                    break
 
     mpu_file.write('\n')
     mpu_file.write('  // Turn on the MPU\n')
@@ -102,8 +107,9 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
     if delete_and_rename_file() and code_remaining >= 0:
         print('A new ST31_MPU.c file has been generated successfully\n')
         print('You need to re-compile in Keil\n')
+
     else:
-        print('ST31_MPU.c file has NOT generated successfully. (need more than 8 regions?)\n')
+        print('ST31_MPU.c file has NOT been generated successfully. (need more than 8 regions?)\n')
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

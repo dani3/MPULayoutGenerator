@@ -6,7 +6,8 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
     powers_array = generate_powers_array()
 
     # Go to parent folder.
-    mpu_file = open("..\Source\HAL\ST31_MPU_temp.c", "w+")
+    #mpu_file = open("..\Source\HAL\ST31_MPU_temp.c", "w+")
+    mpu_file = open("ST31_MPU_temp.c", "w+")
 
     mpu_file.write('#include <Globals/PLATFORM.H>\n')
     mpu_file.write('\n')
@@ -74,11 +75,14 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
                     # We've surpassed the code, decrease it by one
                     ii -= 1
 
+                    # Just some formatting
+                    region_size = format_size(MIN_POWER + ii)
+
                     mpu_file.write('\n')
                     mpu_file.write('  // Region %d Enabled.\n' % i)
                     mpu_file.write('  r_MPU_REGION_BASE_ADDRESS = ((0x%x & 0xFFFFFF00) | MPU_RBAR_VALID | %d);\n' % (region_base_address, i))
-                    mpu_file.write('  // Permission: r+x; SRD; Size affected; Enabled;\n')
-                    mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0x00 << 8 | 0x%x << 1 | MPU_ENABLE);\n' % (MIN_POWER + ii))
+                    mpu_file.write('  // Permission: r+x; SRD; Size affected: 0x%x; Enabled;\n' % powers_array[ii])
+                    mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0x00 << 8 | 0x%s << 1 | MPU_ENABLE);\n' % region_size)
 
                     # Update the code size remaining
                     code_remaining = code_remaining - powers_array[ii]

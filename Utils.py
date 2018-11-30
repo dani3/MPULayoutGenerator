@@ -2,6 +2,14 @@ import os
 from Constants import *
 
 
+def format_size(size):
+    formatted = str("%x" % size).upper()
+    if len(formatted) < 2:
+        formatted = "0" + formatted
+
+    return formatted
+
+
 def generate_powers_array():
     temp = []
 
@@ -13,7 +21,8 @@ def generate_powers_array():
 
 def delete_and_rename_file():
     # The generated temp file has the new and correct MPU configuration
-    if os.path.isfile('..\Source\HAL\ST31_MPU_temp.c'):
+    #if os.path.isfile('..\Source\HAL\ST31_MPU_temp.c'):
+    if os.path.isfile('ST31_MPU_temp.c'):
         try:
             # This generated file can't be read protected.
             os.remove("..\Source\HAL\ST31_MPU.c")

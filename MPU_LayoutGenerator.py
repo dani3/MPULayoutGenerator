@@ -1,6 +1,4 @@
-import os
 import sys
-from Constants import *
 from Utils import *
 
 
@@ -76,8 +74,6 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
                     # We've surpassed the code, decrease it by one
                     ii -= 1
 
-                    print("Region chosen: %x" % powers_array[ii])
-
                     mpu_file.write('\n')
                     mpu_file.write('  // Region %d Enabled.\n' % i)
                     mpu_file.write('  r_MPU_REGION_BASE_ADDRESS = ((0x%x & 0xFFFFFF00) | MPU_RBAR_VALID | %d);\n' % (region_base_address, i))
@@ -86,10 +82,8 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
 
                     # Update the code size remaining
                     code_remaining = code_remaining - powers_array[ii]
-                    print("Code remaining: %x" % code_remaining)
                     # The next region will start in this address
                     region_base_address += powers_array[ii]
-                    print("Next region: %x" % region_base_address)
 
                     break
 
@@ -110,6 +104,7 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
 
     else:
         print('ST31_MPU.c file has NOT been generated successfully. (need more than 8 regions?)\n')
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

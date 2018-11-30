@@ -21,8 +21,7 @@ def generate_powers_array():
 
 def delete_and_rename_file():
     # The generated temp file has the new and correct MPU configuration
-    #if os.path.isfile('..\Source\HAL\ST31_MPU_temp.c'):
-    if os.path.isfile('ST31_MPU_temp.c'):
+    if os.path.isfile('..\Source\HAL\ST31_MPU_temp.c'):
         try:
             # This generated file can't be read protected.
             os.remove("..\Source\HAL\ST31_MPU.c")

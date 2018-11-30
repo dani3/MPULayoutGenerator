@@ -6,8 +6,7 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
     powers_array = generate_powers_array()
 
     # Go to parent folder.
-    #mpu_file = open("..\Source\HAL\ST31_MPU_temp.c", "w+")
-    mpu_file = open("ST31_MPU_temp.c", "w+")
+    mpu_file = open("..\Source\HAL\ST31_MPU_temp.c", "w+")
 
     mpu_file.write('#include <Globals/PLATFORM.H>\n')
     mpu_file.write('\n')

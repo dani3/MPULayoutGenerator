@@ -68,14 +68,8 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
 
         # There is some code to protect
         else:
-            print("Code remaining: 0x%x" % int(code_remaining))
-
             code_protected_wo, region_size_wo = calculate_region_without_subregions(code_remaining, powers_array)
             code_protected_w, region_size_w, subregions_w = calculate_region_with_subregions(code_remaining, powers_array)
-
-            print("Code protected by WO: 0x%x" % int(code_protected_wo))
-            print("Code protected by W: 0x%x" % int(code_protected_w))
-            print("_________________________________________________")
 
             code_protected = code_protected_wo if (code_protected_wo >= code_protected_w) else code_protected_w
             region_size = region_size_wo if (code_protected_wo >= code_protected_w) else region_size_w

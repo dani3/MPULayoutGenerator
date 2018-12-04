@@ -37,3 +37,41 @@ def delete_and_rename_file():
         print("Error: This tool didn't generate the new MPU configs in ST31_MPU_temp.c")
 
         return False
+
+
+def calculate_region_without_subregions(code_remaining, powers_array):
+    # Look for the biggest power of two that fits inside the code
+    for ii in range(len(powers_array)):
+        if powers_array[ii] > code_remaining:
+            # We've surpassed the code, decrease it by one
+            ii -= 1
+
+            # Just some formatting
+            region_size = format_size(MIN_POWER + ii)
+
+            return powers_array[ii], region_size
+
+
+def calculate_region_with_subregions(code_remaining, powers_array):
+    # Look for the biggest power of two that just surpasses the code size
+    for ii in range(len(powers_array)):
+        if powers_array[ii] > code_remaining:
+            # Calculate the subregion size
+            subregion_size = powers_array[ii] / 8
+
+            # Enable all the regions
+            subregions = 0xFF
+
+            for i in range(1, MPU_NO_SUBREGIONS + 1):
+                subregions = subregions >> 1
+
+                # Subtract the previous regions plus the next one
+                if powers_array[ii] - (subregion_size * i) <= code_remaining:
+                    code_protected = powers_array[ii] - (subregion_size * i)
+
+                    # Just some formatting
+                    region_size = format_size(MIN_POWER + ii)
+                    subregions = format_size(subregions)
+
+                    return code_protected, region_size, subregions
+

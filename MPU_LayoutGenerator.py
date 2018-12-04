@@ -60,7 +60,7 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
     region_base_address = flash_base
     for i in range(4, MPU_NO_REGIONS):
         # No more flash to protect
-        if code_remaining == 0:
+        if code_remaining < powers_array[0]:
             mpu_file.write('\n')
             mpu_file.write('  // Region %d Disabled\n' % i)
             mpu_file.write('  r_MPU_REGION_BASE_ADDRESS = (0x00000000 | MPU_RBAR_VALID | %d);\n' % i)
@@ -68,27 +68,29 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
 
         # There is some code to protect
         else:
-            # Look for the biggest power of two that fits inside the code
-            for ii in range(len(powers_array)):
-                if powers_array[ii] > code_remaining:
-                    # We've surpassed the code, decrease it by one
-                    ii -= 1
+            print("Code remaining: 0x%x" % int(code_remaining))
 
-                    # Just some formatting
-                    region_size = format_size(MIN_POWER + ii)
+            code_protected_wo, region_size_wo = calculate_region_without_subregions(code_remaining, powers_array)
+            code_protected_w, region_size_w, subregions_w = calculate_region_with_subregions(code_remaining, powers_array)
 
-                    mpu_file.write('\n')
-                    mpu_file.write('  // Region %d Enabled.\n' % i)
-                    mpu_file.write('  r_MPU_REGION_BASE_ADDRESS = ((0x%x & 0xFFFFFF00) | MPU_RBAR_VALID | %d);\n' % (region_base_address, i))
-                    mpu_file.write('  // Permission: r+x; SRD; Size affected: 0x%x; Enabled;\n' % powers_array[ii])
-                    mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0x00 << 8 | 0x%s << 1 | MPU_ENABLE);\n' % region_size)
+            print("Code protected by WO: 0x%x" % int(code_protected_wo))
+            print("Code protected by W: 0x%x" % int(code_protected_w))
+            print("_________________________________________________")
 
-                    # Update the code size remaining
-                    code_remaining = code_remaining - powers_array[ii]
-                    # The next region will start in this address
-                    region_base_address += powers_array[ii]
+            code_protected = code_protected_wo if (code_protected_wo >= code_protected_w) else code_protected_w
+            region_size = region_size_wo if (code_protected_wo >= code_protected_w) else region_size_w
+            subregions = "00x" if (code_protected_wo >= code_protected_w) else subregions_w
 
-                    break
+            mpu_file.write('\n')
+            mpu_file.write('  // Region %d Enabled.\n' % i)
+            mpu_file.write('  r_MPU_REGION_BASE_ADDRESS = ((0x%x & 0xFFFFFF00) | MPU_RBAR_VALID | %d);\n' % (int(region_base_address), i))
+            mpu_file.write('  // Permission: r+x; SRD; Size affected: 0x%x; Enabled;\n' % int(code_protected))
+            mpu_file.write('  r_MPU_REGION_ATTRIBUTE_AND_SIZE = (MPU_RO | 0x%s << 8 | 0x%s << 1 | MPU_ENABLE);\n' % (subregions, region_size))
+
+            # Update the code remaining
+            code_remaining -= code_protected
+            # The next region will start in this address
+            region_base_address += code_protected            
 
     mpu_file.write('\n')
     mpu_file.write('  // Turn on the MPU\n')

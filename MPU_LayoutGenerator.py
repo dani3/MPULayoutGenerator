@@ -73,7 +73,7 @@ def generate_mpu_layout(eeprom_userstart, flash_base, interrupt_vector_table_ram
 
             code_protected = code_protected_wo if (code_protected_wo >= code_protected_w) else code_protected_w
             region_size = region_size_wo if (code_protected_wo >= code_protected_w) else region_size_w
-            subregions = "00x" if (code_protected_wo >= code_protected_w) else subregions_w
+            subregions = "00" if (code_protected_wo >= code_protected_w) else subregions_w
 
             mpu_file.write('\n')
             mpu_file.write('  // Region %d Enabled.\n' % i)
